@@ -29,9 +29,9 @@ require 'systemd'
 class CheckFailedUnits < Sensu::Plugin::Check::CLI
     def run
       cli = CheckFailedUnits.new
-
-      systemd = Systemd::SystemdManager.new
-      if systemd.nil?
+      begin
+        systemd = Systemd::SystemdManager.new
+      rescue
         unknown 'Can not connect to systemd'
       end
       failed_units = ""
