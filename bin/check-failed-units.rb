@@ -27,6 +27,11 @@ require 'sensu-plugin/check/cli'
 require 'systemd'
 
 class CheckFailedUnits < Sensu::Plugin::Check::CLI
+    option :ignoremasked,
+          description: 'Ignore Masked Units',
+          short: '-m',
+          default: false
+
     def run
       cli = CheckFailedUnits.new
       begin
@@ -37,7 +42,11 @@ class CheckFailedUnits < Sensu::Plugin::Check::CLI
       failed_units = ""
       systemd.units.each do |unit|
         if unit.name.include?(".service") and unit.active_state.include?("failed")
-          failed_units += unit.name+","
+          if cli.config[:ignoremasked] and unit.load_state.include?("masked")
+            next
+          else
+            failed_units += unit.name+","
+          end
         end
       end
       if failed_units.empty?
